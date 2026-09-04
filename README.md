@@ -171,6 +171,6 @@ O linter também não avalia conteúdo de mensagem. As doze regras cobrem estrut
 
 ## Contexto
 
-Escrito por [Danilo Espeleta](https://espeledata.com), especialista em CRM e lifecycle marketing. As regras derivam de operação de base com 50 mil leads. O método de leitura de jornada por trás delas é o LEEA, e o caso técnico completo está em [espeledata.com](https://espeledata.com).
+O método de leitura de jornada por trás das regras é o LEEA. O caso técnico completo está em [espeledata.com](https://espeledata.com).
 
 Licença MIT.
