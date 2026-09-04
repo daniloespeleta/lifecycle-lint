@@ -1,5 +1,7 @@
 # lifecycle-lint
 
+![ci](https://github.com/daniloespeleta/lifecycle-lint/actions/workflows/ci.yml/badge.svg)
+
 Jornada de CRM quebrada raramente quebra. Ela roda.
 
 O fluxo dispara, as mensagens saem, o relatório fecha com número verde, e ninguém percebe que dois mil contatos estão presos em três réguas ao mesmo tempo porque cada uma foi publicada por um time diferente. Software tem linter para esse tipo de erro silencioso. CRM não tem.
