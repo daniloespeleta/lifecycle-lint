@@ -45,5 +45,3 @@ Parte relevante do que se apresenta hoje como IA aplicada a marketing inverte es
 Que a diferença entre uma régua bem construída e uma malfeita está em conhecimento tácito de operação. Critério de saída, lista de supressão, teto de frequência e grupo de controle são quatro campos que as interfaces de automação não solicitam, e que por isso ficam em branco. O linter os exige.
 
 Conhecimento tácito não escala em revisão manual. Escala quando vira regra executável, com identificador, severidade, correção sugerida e exit code que barra o merge.
-
-Operação de CRM madura não é a que erra menos. É a que descobre o erro antes do envio.
