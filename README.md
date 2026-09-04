@@ -2,9 +2,7 @@
 
 ![ci](https://github.com/daniloespeleta/lifecycle-lint/actions/workflows/ci.yml/badge.svg)
 
-Jornada de CRM quebrada raramente quebra. Ela roda.
-
-O fluxo dispara, as mensagens saem, o relatório fecha com número verde, e ninguém percebe que dois mil contatos estão presos em três réguas ao mesmo tempo porque cada uma foi publicada por um time diferente. Software tem linter para esse tipo de erro silencioso. CRM não tem.
+Jornada de CRM quebrada raramente quebra. O fluxo dispara, as mensagens saem, o relatório fecha com número verde, e ninguém percebe que dois mil contatos estão presos em três réguas ao mesmo tempo porque cada uma foi publicada por um time diferente. Software tem linter para esse tipo de erro silencioso.
 
 Isto é um linter para jornadas de lifecycle. Você declara a jornada em YAML, ele aponta o defeito antes que a jornada alcance gente.
 
@@ -30,9 +28,7 @@ O exit code é 1 quando existe erro, então isso roda em CI e barra merge de jor
 
 ## O achado que justifica a ferramenta
 
-L011 e L012 não olham uma jornada. Olham o portfólio.
-
-O dano de CRM quase nunca está dentro de um fluxo. Está na soma. Três times publicam três jornadas corretas, todas passariam numa revisão isolada, e o contato recebe onze toques em cinco dias. Ninguém decidiu isso. A soma decidiu. É o único defeito de lifecycle que nenhuma revisão de fluxo único encontra, e é o mais caro: descadastro é a métrica que não volta.
+L011 e L012 olham o portfólio. O dano de CRM quase nunca está dentro de um fluxo. Está na soma. Três times publicam três jornadas corretas, todas passariam numa revisão isolada, e o contato recebe onze toques em cinco dias. Ninguém decidiu isso. A soma decidiu. É o único defeito de lifecycle que nenhuma revisão de fluxo único encontra, e é o mais caro: descadastro é a métrica que não volta.
 
 ```
    ERRO L012 (com winback_inativos)  Pressão agregada acima do teto por contato
@@ -119,11 +115,11 @@ Nenhuma delas é regra de engenharia. Todas são conhecimento de operação de C
 
 **A sobreposição de audiência usa coeficiente de sobreposição, não Jaccard.** Jaccard erra o caso mais comum de CRM, que é uma audiência contida na outra. "Inativos há 60 dias" e "inativos há 60 dias que abandonaram checkout" são a mesma gente, e Jaccard leria 0.5 só porque um dos lados tem um filtro a mais. Dividindo pelo menor conjunto, lê 1.0. Que é a resposta certa.
 
-Os pesos por canal são a terceira decisão, e essa é opinião assumida: e-mail 1.0, push 1.5, SMS e WhatsApp 2.0. WhatsApp custa o dobro de e-mail em atenção. Discorde editando `.lifecycle-lint.yaml`.
+Os pesos por canal são a terceira decisão: e-mail 1.0, push 1.5, SMS e WhatsApp 2.0. WhatsApp custa o dobro de e-mail em atenção. Discorde editando `.lifecycle-lint.yaml`.
 
 ## Configuração
 
-Orçamento de atenção é política de CRM, não constante de engenharia. Por isso mora em arquivo versionado, onde a mudança acontece em pull request e não no meio de uma campanha.
+Orçamento de atenção é política de CRM que mora em arquivo versionado, onde a mudança acontece em pull request e não no meio de uma campanha.
 
 ```yaml
 max_weekly_pressure: 6.0
@@ -136,7 +132,7 @@ downgrade_to_warning: [L007]
 
 ## Sobre o `--explain`
 
-A flag `--explain` pede ao Claude um resumo em prosa dos achados. Ela é opcional por design, e essa é a parte importante.
+A flag `--explain` pede ao Claude um resumo em prosa dos achados. Ela é opcional por design.
 
 O diagnóstico inteiro é determinístico. Nenhuma regra chama modelo. Sem `ANTHROPIC_API_KEY` o linter continua correto, só fica menos falante. Colocar um LLM no caminho crítico de uma auditoria troca um resultado reproduzível por um resultado plausível, e resultado plausível não serve para decidir se um fluxo entra no ar.
 
@@ -147,7 +143,7 @@ from lifecycle_lint.adapters import n8n
 canonico = n8n.convert("meu_workflow.json")
 ```
 
-Cobertura parcial, e assumida. O export do n8n descreve execução, não intenção: ele sabe que existe um nó de e-mail, não sabe qual é a métrica de sucesso da jornada. O adaptador marca o que falta como `TODO_DECLARAR` e importa tudo como `draft`, em vez de preencher com padrão silencioso e fazer o linter aprovar uma jornada que ninguém leu.
+Cobertura parcial. O export do n8n descreve execução, não intenção: ele sabe que existe um nó de e-mail, não sabe qual é a métrica de sucesso da jornada. O adaptador marca o que falta como `TODO_DECLARAR` e importa tudo como `draft`, em vez de preencher com padrão silencioso e fazer o linter aprovar uma jornada que ninguém leu.
 
 ## Rodando em CI
 
@@ -168,7 +164,7 @@ Cada regra tem o caso que dispara e o caso limpo que não dispara. Falso positiv
 
 ## Limitações
 
-Ele lê declaração, não execução. Se a jornada declarada não corresponde ao que está publicado na ferramenta, o linter aprova a declaração e o problema continua em produção. A ponte para isso é o adaptador, e ele hoje cobre n8n parcialmente.
+Se a jornada declarada não corresponde ao que está publicado na ferramenta, o linter aprova a declaração e o problema continua em produção. A ponte para isso é o adaptador, e ele hoje cobre n8n parcialmente.
 
 Ele também não sabe se a mensagem é boa. Pressão, saída e medição são estrutura. Conteúdo é outro problema.
 
