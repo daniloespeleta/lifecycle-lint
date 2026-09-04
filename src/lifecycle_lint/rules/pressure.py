@@ -1,8 +1,8 @@
 """Regras de pressão: quanto de atenção o portfólio inteiro cobra de uma pessoa.
 
-O defeito mais caro de CRM raramente está dentro de uma jornada. Está na soma:
-três times publicam três fluxos corretos e o contato recebe onze mensagens em
-cinco dias. Nenhum linter de fluxo único encontra isso.
+A carga que uma pessoa recebe é a soma das jornadas ativas que a alcançam.
+Três réguas corretas sobre audiências sobrepostas produzem onze mensagens em
+cinco dias sem que nenhum dos três arquivos registre esse total.
 """
 
 from __future__ import annotations
@@ -19,10 +19,9 @@ INTRUSIVE = {"sms", "push", "whatsapp"}
 def weekly_pressure(j: Journey) -> float:
     """Carga de atenção que a jornada cobra dentro de uma janela de 7 dias.
 
-    Normalizar por `span` puro puniria jornadas curtas: um fluxo de carrinho
-    abandonado com três toques em 24h não significa 21 toques por semana, ele
-    acaba. O piso de 7 dias no denominador mede o que a pessoa de fato recebe
-    na semana em que a jornada roda.
+    O piso de 7 dias no denominador evita superestimar fluxos curtos. Sem ele,
+    três toques em 24h seriam extrapolados para 21 toques semanais, número que
+    não ocorre porque a jornada termina antes do fim da janela.
     """
     span_days = max(j.total_duration_hours / 24, 0.0)
     return j.message_load * 7 / max(span_days, 7.0)
@@ -77,12 +76,11 @@ def intrusive_without_quiet_hours(j: Journey, cfg: dict) -> Iterable[Finding]:
 def _overlap(a: Journey, b: Journey) -> float:
     """Coeficiente de sobreposição entre duas definições de audiência.
 
-    Jaccard seria a escolha ingênua, e erra o caso mais comum de CRM: uma
-    audiência que é subconjunto da outra. 'Inativos há 60 dias' e 'inativos
-    há 60 dias que abandonaram checkout' descrevem gente que se encontra,
-    e Jaccard leria 0.5 porque um dos lados tem um filtro a mais. O
-    coeficiente de sobreposição divide pelo menor dos dois conjuntos e lê 1.0,
-    que é a resposta certa: todo mundo do segundo grupo está no primeiro.
+    Índice de Jaccard subestima quando uma audiência está contida na outra,
+    caso frequente em CRM. 'Inativos há 60 dias' e 'inativos há 60 dias que
+    abandonaram checkout' alcançam o mesmo grupo, e Jaccard retorna 0.5 porque
+    o segundo conjunto tem um filtro a mais. O coeficiente de sobreposição
+    divide pela cardinalidade do menor conjunto e retorna 1.0.
     """
     sa, sb = a.audience.signature, b.audience.signature
     if not sa or not sb:
@@ -106,8 +104,8 @@ def overlapping_audiences(journeys: list[Journey], cfg: dict) -> Iterable[Findin
             title="Jornadas ativas concorrendo pela mesma audiência",
             detail=(
                 f"'{a.name}' e '{b.name}' compartilham {score:.0%} da definição de audiência "
-                "e estão ativas ao mesmo tempo. A mesma pessoa está em duas conversas, e o "
-                "resultado de cada uma é contaminado pela outra."
+                "e estão ativas ao mesmo tempo. Contatos na interseção recebem as duas "
+                "sequências, e o resultado medido de cada jornada inclui o efeito da outra."
             ),
             fix=(
                 f"Declarar prioridade entre as duas, ou excluir mutuamente: suprimir de "
@@ -148,11 +146,11 @@ def aggregate_pressure(journeys: list[Journey], cfg: dict) -> Iterable[Finding]:
             detail=(
                 f"As jornadas {sorted(key)} alcançam a mesma audiência e somam pressão "
                 f"semanal de {total:.1f} (teto: {cfg['max_weekly_pressure']:.1f}). "
-                f"Detalhe: {breakdown}. Ninguém decidiu enviar tudo isso, a soma decidiu."
+                f"Detalhe: {breakdown}. O total não consta de nenhuma das jornadas isoladas."
             ),
             fix=(
-                "Instituir um teto de frequência no nível do contato, não no da jornada, "
-                "e uma ordem de prioridade que suprime as jornadas de menor valor quando o teto estoura."
+                "Instituir teto de frequência no nível do contato, com ordem de prioridade "
+                "que suprima as jornadas de menor valor quando o teto for atingido."
             ),
         )
 

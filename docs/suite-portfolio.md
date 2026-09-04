@@ -2,19 +2,17 @@
 
 ## A tese
 
-Certificado não prova nada. Prova artefato.
+Jornada de cliente é artefato versionável. Se ela pode ser declarada em arquivo, ela pode ser lida, auditada e revisada em pull request, com histórico de versão e revisão por pares. Hoje ela vive dentro da interface da ferramenta de automação, onde não há diff entre versões nem registro de por que aquele delay é de 48 horas.
 
-A tese que une os três projetos é uma só: **jornada de cliente é artefato versionável**. Se ela pode ser declarada, pode ser lida e revisada em pull request, como código. Hoje ela vive dentro da interface de uma ferramenta de automação, onde ninguém consegue comparar versões nem explicar por que aquele delay é de 48 horas.
+Os três repositórios cobrem três etapas do mesmo ciclo.
 
-Os três repos são três momentos do mesmo ciclo.
-
-| Repo | Momento | Certificação que ele exercita |
+| Repo | Etapa | Certificação que ele exercita |
 |---|---|---|
 | `lifecycle-lint` | auditar | Claude Code in Action (Anthropic) |
 | `segment-brief` | propor | Agents and Workflows (OpenAI Academy) |
 | `lentes` | ler | AI Fluency: Framework & Foundations (Anthropic) |
 
-Eles se encaixam num pipeline, e é o encaixe que faz a suíte valer mais que a soma:
+Eles se encaixam em pipeline, e o encaixe é o que dá valor à suíte acima da soma das partes:
 
 ```
 lentes            →  segment-brief        →  lifecycle-lint
@@ -22,31 +20,31 @@ prompts versionados  agente que propõe       linter que audita
 e avaliados          jornada em YAML         antes do envio
 ```
 
-A saída de um é a entrada do outro. O critério de aceite do agente fica objetivo: a jornada que ele propõe precisa passar no linter. Isso resolve o problema mais chato de portfólio com IA, que é não ter como provar que o output presta.
+A saída de um é a entrada do outro, o que torna objetivo o critério de aceite do agente: a jornada proposta precisa passar no linter. Isso resolve o problema mais difícil de portfólio com IA, que é evidenciar qualidade de output sem depender de julgamento subjetivo.
 
-## Ordem de construção e por quê
+## Ordem de construção
 
-**1. `lifecycle-lint` (pronto).** Primeiro porque é o único que um gestor de CRM entende em cinco segundos e reconhece como dor própria. Também sustenta os outros dois. Sem o linter, o agente não tem critério de aceite.
+**1. `lifecycle-lint` (pronto).** Primeiro porque um gestor de CRM reconhece o problema em poucos segundos, e porque ele sustenta os outros dois: sem o linter, o agente do projeto 2 fica sem critério de aceite.
 
-**2. `segment-brief`.** Segundo porque é o que rende mais em entrevista técnica. Toda vaga de CRM sênior em 2026 pergunta sobre IA, e a resposta média é "uso ChatGPT para copy". A resposta com um agente auditável em cima é outra conversa.
+**2. `segment-brief`.** Segundo pelo retorno em entrevista técnica. Vagas de CRM sênior perguntam sobre uso de IA, e a resposta usual se limita a geração de copy. Um agente com validação programática em cima muda o nível da conversa.
 
-**3. `lentes`.** Terceiro porque é o mais fácil de parecer bonito e o mais difícil de provar. Sozinho, seria mais um repositório de prompts, e o mundo não precisa de mais um. Com harness de avaliação e ligado aos outros dois, vira infraestrutura.
+**3. `lentes`.** Terceiro porque é o de aparência mais fácil e demonstração mais difícil. Isolado, seria mais um repositório de prompts. Com harness de avaliação e integrado aos outros dois, vira infraestrutura de avaliação.
 
-Estimativa honesta: `segment-brief` são cerca de quatro dias de trabalho concentrado, `lentes` são dois. Não sete semanas.
+Estimativa: `segment-brief` em torno de quatro dias de trabalho concentrado, `lentes` em dois.
 
 ---
 
 # Projeto 2: `segment-brief`
 
-**Uma frase:** agente que lê uma tabela de eventos de produto e devolve o briefing de segmento com a jornada proposta em YAML, já auditada pelo `lifecycle-lint`.
+**Escopo em uma frase:** agente que lê uma tabela de eventos de produto e devolve o briefing de segmento com a jornada proposta em YAML, já validada pelo `lifecycle-lint`.
 
-## O problema real
+## O problema
 
-A pergunta "que segmento a gente deveria estar trabalhando" leva uma semana para ser respondida em quase toda operação. Alguém puxa dado, alguém cruza com receita, alguém escreve um documento, alguém discorda. O trabalho não é difícil. É repetitivo, e a parte repetitiva é justamente a que dá para delegar.
+A pergunta "que segmento deveríamos estar trabalhando" leva cerca de uma semana em quase toda operação. Alguém extrai dado, alguém cruza com receita, alguém escreve um documento, alguém contesta. O trabalho é repetitivo em quase toda a sua extensão, e a parte repetitiva é a delegável.
 
 ## Arquitetura
 
-Roteador determinístico na frente, agente no meio, validador no fim.
+Roteador determinístico na entrada, agente no meio, validador na saída.
 
 ```
 entrada: eventos.parquet + pergunta em linguagem natural
@@ -65,61 +63,58 @@ entrada: eventos.parquet + pergunta em linguagem natural
   └─ validador (código, não modelo)
        · o YAML gerado passa pelo lifecycle-lint
        · segmento abaixo do piso de amostra é rejeitado
-       · se falhar, devolve os achados ao agente para uma segunda rodada
-       · duas rodadas e para: agente que não converge em duas tentativas
-         não converge em dez, só gasta token
+       · em caso de falha, os achados voltam ao agente para uma segunda rodada
+       · limite de duas rodadas, para conter custo de token em loop que não converge
 ```
 
-## O que este projeto prova, que os outros não provam
+## O que este projeto demonstra
 
-O critério de quando **não** usar agente. O roteador é código. O validador é código. O agente ocupa só o miolo, que é onde a tarefa é aberta o suficiente para justificar. Agente que também roteia e também valida a si mesmo é agente que ninguém consegue auditar.
+O critério de quando usar agente e quando usar código. Roteamento e validação são determinísticos. O agente ocupa apenas a etapa em que a tarefa é aberta o bastante para justificar. Um agente que também roteia e valida a si mesmo não produz resultado auditável.
 
-E prova o loop fechado: a proposta é rejeitada por um programa, não por opinião.
+Demonstra também o loop fechado: a proposta é aceita ou rejeitada por um programa, com critério explícito.
 
-## Escopo e dados
+## Dados
 
-Dataset sintético de edtech, gerado por script versionado: 40 mil usuários, 18 meses de eventos (matrícula, login, aula assistida, pagamento, cancelamento), com sazonalidade e uma coorte de churn plantada para o agente encontrar. Dado sintético é obrigatório aqui, e o README diz isso em voz alta. Usar base real de empregador em portfólio público é problema, não é iniciativa.
+Dataset sintético de edtech, gerado por script versionado: 40 mil usuários, 18 meses de eventos (matrícula, login, aula assistida, pagamento, cancelamento), com sazonalidade e uma coorte de churn plantada para o agente encontrar. Dado sintético é requisito aqui, declarado no README. Base real de empregador não entra em portfólio público.
 
 ## Critério de pronto
 
 - Três perguntas de exemplo rodando ponta a ponta, com transcrição do loop salva em `runs/`
 - Toda jornada proposta passa no `lifecycle-lint` com `--fail-on error`
-- Um eval com dez perguntas e resposta esperada, rodando em CI
-- Custo por execução medido e impresso no fim do relatório
-- README que explica por que o roteador não é o modelo
+- Eval com dez perguntas e resposta esperada, rodando em CI
+- Custo por execução medido e impresso ao fim do relatório
+- README com a justificativa da separação entre roteador e agente
 
 ---
 
 # Projeto 3: `lentes`
 
-**Uma frase:** biblioteca de lentes de leitura para tarefas de CRM, versionadas, com harness que mede se elas continuam funcionando quando o prompt ou o modelo muda.
+**Escopo em uma frase:** biblioteca de lentes de leitura para tarefas de CRM, versionadas, com harness que mede se elas continuam funcionando quando o prompt ou o modelo muda.
 
-## O problema real
+## O problema
 
-Prompt não é texto. É interface. Todo mundo trata como texto: cola no chat, funciona, salva no Notion, esquece. Seis meses depois o modelo mudou, o prompt degradou, e ninguém percebeu porque não havia com o que comparar.
+Prompt é interface, com contrato de entrada e saída, e costuma ser tratado como texto solto: testado no chat, salvo em nota, esquecido. Quando o modelo é atualizado meses depois, a degradação passa despercebida por falta de linha de base.
 
 ## O que é uma lente
 
-Uma lente é uma chave de leitura aplicada a um objeto de CRM. Cada uma vira um arquivo com quatro partes, e as quatro correspondem às competências do framework de AI Fluency, que é o ponto de contato com a certificação:
+Uma lente é uma chave de leitura aplicada a um objeto de CRM. Cada uma é um arquivo com quatro partes, que correspondem às competências do framework de AI Fluency:
 
 | Parte do arquivo | Competência | O que é na prática |
 |---|---|---|
-| `task` | Delegation | o que se está delegando ao modelo, e o que fica com o humano |
+| `task` | Delegation | o que se delega ao modelo e o que fica com o humano |
 | `prompt` | Description | a instrução, versionada, com histórico |
-| `checks` | Discernment | como se sabe que a saída presta, em asserção verificável |
-| `provenance` | Diligence | modelo, data, quem revisou, o que a saída não decide sozinha |
+| `checks` | Discernment | asserções verificáveis sobre a saída |
+| `provenance` | Diligence | modelo, data, revisor, e escopo de decisão da saída |
 
-Lentes iniciais, todas tiradas de trabalho que já é feito à mão toda semana:
+Lentes iniciais, todas derivadas de tarefa recorrente de operação:
 
-1. **Nomear segmento**: recebe a definição técnica do filtro, devolve o nome que o time vai usar na reunião. Nome de segmento é decisão de linguagem, e segmento com nome ruim morre.
-2. **Diagnóstico de queda**: recebe série temporal de uma métrica de campanha, devolve as hipóteses mais prováveis ordenadas por facilidade de testar.
+1. **Nomear segmento**: recebe a definição técnica do filtro, devolve o nome de uso interno. Nomenclatura determina adoção do segmento pelo time.
+2. **Diagnóstico de queda**: recebe série temporal de uma métrica de campanha, devolve hipóteses ordenadas por facilidade de teste.
 3. **Copy por estágio**: recebe estágio de ciclo de vida e proposta de valor, devolve variações de assunto e primeira linha, com a hipótese que cada variação testa.
-4. **Leitura de cancelamento**: recebe respostas abertas de pesquisa de churn, devolve os eixos de motivo com contagem e citação de apoio, sem inventar categoria que não aparece no texto.
-5. **Auditoria de tom**: recebe uma régua inteira e aponta onde o registro quebra entre mensagens.
+4. **Leitura de cancelamento**: recebe respostas abertas de pesquisa de churn, devolve eixos de motivo com contagem e citação de apoio, restrito às categorias presentes no texto.
+5. **Auditoria de tom**: recebe uma régua completa e aponta onde o registro quebra entre mensagens.
 
 ## O harness
-
-O que separa este repo de mais um repositório de prompts:
 
 ```bash
 lentes eval nomear-segmento          # roda os casos, mostra o placar
@@ -127,21 +122,19 @@ lentes eval --all --model sonnet     # troca o modelo, compara com o anterior
 lentes diff nomear-segmento v3 v4    # o que mudou entre as versões do prompt
 ```
 
-Cada lente tem entre cinco e dez casos com asserção verificável. Nem toda asserção precisa de modelo: "não contém travessão", "devolve entre 3 e 5 itens", "não cita nome próprio que não estava na entrada" são checagens de código. As que precisam de julgamento usam um modelo como juiz, e isso fica marcado no relatório. Porque juiz-modelo é medida com viés, e quem lê o número precisa saber.
+Cada lente tem entre cinco e dez casos com asserção verificável. Boa parte das asserções é checagem de código: "não contém travessão", "devolve entre 3 e 5 itens", "não cita nome próprio ausente da entrada". As que exigem julgamento usam modelo como juiz, e o relatório marca quais são, porque juiz-modelo introduz viés que precisa ser visível na leitura do placar.
 
 ## Critério de pronto
 
 - Cinco lentes com dez casos cada
-- Placar de regressão rodando em CI, com comparação contra a versão anterior
-- Uma lente com histórico de versão real, mostrando o prompt v1 falhando em dois casos e o v3 passando
-- README que diz o que a biblioteca não resolve
+- Placar de regressão em CI, com comparação contra a versão anterior
+- Uma lente com histórico real de versão, mostrando o prompt v1 falhando em dois casos e o v3 passando
+- README com o escopo que a biblioteca não cobre
 
 ---
 
-## Sobre nome de suíte
+## Nome de suíte
 
-`journey-as-code` como guarda-chuva, se você quiser um. É legível para recrutador técnico e diz a tese sem adjetivo.
+`journey-as-code` como guarda-chuva, se houver necessidade de um. É legível para avaliador técnico e enuncia a tese sem adjetivo.
 
-Fica de fora dos nomes de repositório o LEEA. Ele aparece no case como o método de leitura por trás das regras, não como marca do portfólio. Método autoral e vitrine de emprego são coisas diferentes, e queimar o primeiro na segunda é troca ruim.
-
-Portfólio não é coleção de projetos. É uma tese defendida três vezes.
+O LEEA fica fora dos nomes de repositório. Ele aparece no case como o método de leitura por trás das regras, e não como marca do portfólio, para separar método autoral de material de candidatura.

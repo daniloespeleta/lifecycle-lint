@@ -45,8 +45,9 @@ class Filter:
     def is_recency_bound(self) -> bool:
         """O filtro tem decaimento temporal?
 
-        `clicou_alguma_vez` cria um segmento que só cresce e nunca esquece.
-        `clicou nos ultimos 30 dias` é um segmento vivo.
+        Operadores com janela (`within_days`, `last_n_days`) descrevem um
+        conjunto que se renova. Operadores sem janela (`equals`, `exists`)
+        descrevem um conjunto que só cresce ao longo do tempo.
         """
         return self.op in {"within_days", "within_hours", "since", "between_dates", "last_n_days"}
 

@@ -1,10 +1,11 @@
 """Adaptador n8n → formato canônico.
 
-Cobertura parcial e assumida. O export do n8n descreve execução, não intenção:
-ele sabe que existe um nó de e-mail, não sabe qual é a métrica de sucesso da
-jornada nem se existe holdout. O adaptador traduz o que dá para traduzir e
-deixa explícito o que precisa ser declarado à mão, em vez de preencher com
-um padrão silencioso que faria o linter aprovar uma jornada que ninguém auditou.
+Cobertura parcial e declarada. O export do n8n contém os nós do workflow e as
+conexões entre eles. Métrica de sucesso, holdout, lista de supressão e critério
+de saída são campos declarados pelo operador e não têm representação no fluxo
+executável, então o adaptador os marca como TODO_DECLARAR e importa a jornada
+como draft. Preencher com valor padrão faria o linter aprovar uma régua que
+ninguém revisou.
 """
 
 from __future__ import annotations

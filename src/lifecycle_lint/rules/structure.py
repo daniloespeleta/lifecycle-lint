@@ -20,10 +20,10 @@ def no_exit_criteria(j: Journey, cfg: dict) -> Iterable[Finding]:
         journey_id=j.id,
         title="Jornada ativa sem critério de saída",
         detail=(
-            "A jornada não declara nenhuma condição de saída. Quem entra só sai quando "
-            "os passos acabam, mesmo tendo feito a conversão que a jornada existe para "
-            "provocar. É assim que aluno já matriculado segue recebendo o fluxo de quem "
-            "não matriculou."
+            "A jornada não declara condição de saída. O contato permanece nela até o "
+            "último passo, inclusive depois de realizar a conversão que a jornada "
+            "pretende provocar, e continua recebendo a sequência destinada a quem "
+            "ainda não converteu."
         ),
         fix=(
             "Declarar em 'exit' o evento que torna a jornada desnecessária "
@@ -50,8 +50,8 @@ def branch_without_default(j: Journey, cfg: dict) -> Iterable[Finding]:
             title="Branch sem caminho padrão",
             detail=(
                 f"O passo '{step.id}' ramifica em {sorted(step.branches)} e não tem "
-                "caminho padrão. Quem não cair em nenhuma condição para na bifurcação "
-                "e some do relatório: não converteu, não saiu, não aparece em lugar nenhum."
+                "caminho padrão. Contatos que não satisfazem nenhuma condição param na "
+                "bifurcação, sem conversão registrada e sem evento de saída."
             ),
             fix=f"Adicionar uma chave 'default' em branches de '{step.id}', nem que seja para sair da jornada.",
         )
@@ -68,8 +68,9 @@ def loop_without_limit(j: Journey, cfg: dict) -> Iterable[Finding]:
                 step_id=step.id,
                 title="Loop sem limite de iterações",
                 detail=(
-                    f"O passo '{step.id}' repete sem teto declarado. Um loop de "
-                    "reengajamento sem limite não reengaja, persegue."
+                    f"O passo '{step.id}' repete sem teto declarado. O contato permanece "
+                    "no ciclo enquanto a condição de saída não for satisfeita, sem limite "
+                    "superior de envios."
                 ),
                 fix=f"Definir 'max_iterations' em '{step.id}' e uma saída para quem estourar o limite.",
             )
@@ -108,7 +109,8 @@ def segment_without_recency(j: Journey, cfg: dict) -> Iterable[Finding]:
             title="Segmento sem nenhum filtro",
             detail=(
                 f"A audiência é o segmento '{j.audience.segment}' inteiro, sem recorte. "
-                "Segmento sem recorte é lista, e lista não é segmento."
+                "Sem filtro, a jornada alcança todo contato do segmento, independente de "
+                "comportamento ou recência."
             ),
             fix="Adicionar ao menos um filtro com janela temporal em audience.filters.",
         )
@@ -123,9 +125,9 @@ def segment_without_recency(j: Journey, cfg: dict) -> Iterable[Finding]:
         title="Segmento sem decaimento temporal",
         detail=(
             f"Os filtros {fields} não têm janela de tempo. Um segmento definido por "
-            "'já fez alguma vez' só cresce e nunca esquece: em seis meses ele contém "
-            "gente que não interage há um ano, e a métrica da jornada passa a medir "
-            "o tamanho do histórico, não o comportamento atual."
+            "ocorrência histórica cresce de forma monotônica: em seis meses inclui "
+            "contatos sem interação há mais de um ano, e o volume da jornada passa a "
+            "acompanhar o tamanho do histórico acumulado."
         ),
         fix="Trocar ao menos um filtro por um operador com janela: within_days, last_n_days, since.",
     )

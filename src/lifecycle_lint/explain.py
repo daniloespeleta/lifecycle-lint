@@ -1,11 +1,10 @@
 """Camada opcional de explicação em linguagem natural.
 
-Critério de projeto, e é ele que importa mais que o código deste arquivo:
-o diagnóstico é determinístico, a explicação é generativa. Nenhuma regra
-depende do modelo. Se a chave de API não existir, o linter continua correto,
-só fica menos falante. Um LLM no caminho crítico de uma auditoria transforma
-um resultado reproduzível em um resultado plausível, e auditoria plausível
-não serve para decidir se um fluxo entra no ar.
+Camada isolada por decisão de arquitetura. Nenhuma das doze regras chama
+modelo: o diagnóstico é determinístico e reproduzível entre execuções, e esta
+camada opera sobre o resultado já fechado. Um LLM no caminho crítico da
+auditoria introduziria variância entre execuções sobre o mesmo input, o que
+inviabiliza usar o resultado como critério de publicação.
 """
 
 from __future__ import annotations

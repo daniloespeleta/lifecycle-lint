@@ -2,11 +2,9 @@
 
 ![ci](https://github.com/daniloespeleta/lifecycle-lint/actions/workflows/ci.yml/badge.svg)
 
-Jornada de CRM quebrada raramente quebra. Ela roda.
+Uma jornada de CRM com defeito de construção continua executando. O fluxo dispara, as mensagens saem, o relatório fecha com número positivo, e o contato que já converteu segue recebendo a sequência de quem não converteu. O efeito aparece semanas depois, na taxa de descadastro e na entregabilidade do domínio.
 
-O fluxo dispara, as mensagens saem, o relatório fecha em verde. E dois mil contatos seguem presos em três réguas ao mesmo tempo, porque cada uma foi publicada por um time que não enxerga as outras. Software tem linter para erro silencioso desse tipo há trinta anos. CRM não tem.
-
-Isto é um linter para jornadas de lifecycle. Você declara a régua em YAML. Ele aponta o defeito antes de a régua alcançar gente.
+Ferramentas de automação executam o que foi montado na interface. Elas não verificam se a régua tem critério de saída, se o segmento decai no tempo ou se outra régua ativa já está falando com a mesma pessoa. `lifecycle-lint` faz essa verificação a partir da jornada declarada em YAML, antes da publicação.
 
 ```
 $ lifecycle-lint audit examples/journeys
@@ -26,22 +24,19 @@ checkout_abandonado · Recuperação de checkout abandonado
 5 erro(s) · 12 aviso(s) · 0 info
 ```
 
-Exit code 1 quando existe erro. Roda em CI e barra merge de régua quebrada.
+O exit code é 1 quando há erro, o que permite rodar em CI e barrar merge.
 
-## O achado que justifica a ferramenta
+## Regras de portfólio
 
-L011 e L012 não olham uma jornada. Olham o portfólio.
+L011 e L012 avaliam o conjunto de jornadas ativas em vez de cada jornada isolada.
 
-Porque o dano de CRM quase nunca está dentro de um fluxo. Está na soma. Três times publicam três réguas corretas, cada uma passaria numa revisão isolada, e o contato recebe onze toques em cinco dias. Ninguém decidiu isso. A soma decidiu.
-
-Nenhuma revisão de fluxo único encontra esse defeito, porque ele não existe dentro de nenhum fluxo. E é o mais caro que existe. Descadastro não volta.
+O caso que elas cobrem: três times publicam três réguas sobre audiências que se sobrepõem, cada uma correta dentro do próprio escopo, e o contato recebe onze toques em cinco dias. A carga somada não consta de nenhum dos três arquivos, então revisão individual não detecta. L011 mede a sobreposição entre as definições de audiência das jornadas ativas. L012 soma a pressão semanal ponderada que essas jornadas cobram do mesmo contato e compara com o teto configurado.
 
 ```
    ERRO L012 (com winback_inativos)  Pressão agregada acima do teto por contato
         As jornadas ['checkout_abandonado', 'winback_inativos'] alcançam a mesma
         audiência e somam pressão semanal de 9.5 (teto: 6.0).
         Detalhe: checkout_abandonado (5.5 em 0.2d), winback_inativos (4.0 em 4.0d).
-        Ninguém decidiu enviar tudo isso, a soma decidiu.
 ```
 
 ## Instalação
@@ -54,7 +49,7 @@ lifecycle-lint rules
 
 Python 3.10 ou maior. A única dependência é PyYAML.
 
-## Como uma jornada é declarada
+## Formato da jornada
 
 ```yaml
 id: onboarding_novo_aluno
@@ -94,7 +89,7 @@ exit:
     after_days: 14
 ```
 
-Quatro campos fazem o trabalho pesado: `suppression`, `holdout`, `success_metric` e `exit`. São exatamente os quatro que ninguém preenche montando o fluxo na interface da ferramenta de automação. Porque a interface não pergunta.
+Quatro campos concentram a maior parte dos achados: `suppression`, `holdout`, `success_metric` e `exit`. Nenhum deles tem campo equivalente na interface das ferramentas de automação mais usadas, o que explica por que costumam estar ausentes.
 
 ## As doze regras
 
@@ -113,19 +108,19 @@ Quatro campos fazem o trabalho pesado: `suppression`, `holdout`, `success_metric
 | L011 | portfólio | Jornadas ativas concorrendo pela mesma audiência |
 | L012 | portfólio | Pressão agregada acima do teto por contato |
 
-Nenhuma delas é regra de engenharia. Todas são conhecimento de operação de CRM escrito em código, e é essa a tese da ferramenta: o que separa régua boa de régua ruim é conhecimento tácito. Conhecimento tácito não escala em revisão manual.
+As doze codificam prática de operação de CRM, não convenção de engenharia de software. `lifecycle-lint rules` lista todas com escopo e título.
 
-## Duas decisões de projeto que valem a leitura
+## Duas decisões de cálculo
 
-**A pressão semanal tem piso de sete dias no denominador.** Normalizar pela duração da jornada puniria fluxo curto. Três toques em 24 horas não são vinte e um toques por semana, são três, porque a jornada acaba. `weekly_pressure = carga × 7 / max(duração_em_dias, 7)`.
+**Pressão semanal com piso de sete dias no denominador.** Normalizar pela duração da jornada superestimaria fluxos curtos: três toques em 24 horas seriam lidos como 21 toques por semana, o que não ocorre, já que a jornada termina. A fórmula é `weekly_pressure = carga × 7 / max(duração_em_dias, 7)`.
 
-**A sobreposição de audiência usa coeficiente de sobreposição, não Jaccard.** Jaccard erra o caso mais comum de CRM, que é uma audiência contida na outra. "Inativos há 60 dias" e "inativos há 60 dias que abandonaram checkout" são a mesma gente, e Jaccard leria 0.5 só porque um dos lados tem um filtro a mais. Dividindo pelo menor conjunto, lê 1.0. Que é a resposta certa.
+**Sobreposição de audiência por coeficiente de sobreposição, não índice de Jaccard.** Quando uma audiência está contida na outra, Jaccard subestima. "Inativos há 60 dias" e "inativos há 60 dias que abandonaram checkout" alcançam o mesmo grupo, e Jaccard retorna 0.5 porque o segundo conjunto tem um filtro a mais. Dividindo pela cardinalidade do menor conjunto, o resultado é 1.0.
 
-Os pesos por canal são a terceira decisão, e essa é opinião assumida: e-mail 1.0, push 1.5, SMS e WhatsApp 2.0. WhatsApp custa o dobro de e-mail em atenção. Discorde editando `.lifecycle-lint.yaml`.
+Os pesos por canal são parâmetro assumido: e-mail 1.0, push 1.5, SMS e WhatsApp 2.0. A escala reflete intrusividade percebida, e pode ser ajustada em `.lifecycle-lint.yaml`.
 
 ## Configuração
 
-Orçamento de atenção é política de CRM, não constante de engenharia. Por isso mora em arquivo versionado, onde a mudança acontece em pull request e não no meio de uma campanha.
+Os limites de pressão variam por vertical, tamanho de base e tolerância da audiência. São decisão de operação, então ficam em `.lifecycle-lint.yaml`, versionado no repositório, e qualquer alteração passa por pull request.
 
 ```yaml
 max_weekly_pressure: 6.0
@@ -136,13 +131,11 @@ disabled_rules: []
 downgrade_to_warning: [L007]
 ```
 
-## Sobre o `--explain`
+## A flag `--explain`
 
-A flag `--explain` pede ao Claude um resumo em prosa dos achados. Ela é opcional por design, e essa é a parte que importa.
+`--explain` envia os achados ao Claude e imprime um resumo em prosa no stderr, para uso em reunião de revisão. Requer `ANTHROPIC_API_KEY` e o extra `pip install 'lifecycle-lint[explain]'`.
 
-O diagnóstico inteiro é determinístico. Nenhuma regra chama modelo. Sem `ANTHROPIC_API_KEY` o linter continua correto, só fica menos falante.
-
-Colocar um LLM no caminho crítico de uma auditoria troca resultado reproduzível por resultado plausível. E auditoria plausível não decide se um fluxo entra no ar.
+Nenhuma regra chama modelo. O diagnóstico é determinístico e reproduzível, e a camada de explicação opera sobre o resultado já fechado. Sem chave de API, o linter roda normalmente e a flag imprime um aviso.
 
 ## Importar do n8n
 
@@ -151,7 +144,7 @@ from lifecycle_lint.adapters import n8n
 canonico = n8n.convert("meu_workflow.json")
 ```
 
-Cobertura parcial, e assumida. O export do n8n descreve execução, não intenção: ele sabe que existe um nó de e-mail, não sabe qual é a métrica de sucesso da jornada. O adaptador marca o que falta como `TODO_DECLARAR` e importa tudo como `draft`. Preencher com padrão silencioso faria o linter aprovar uma régua que ninguém leu.
+O export do n8n contém os nós do workflow e as conexões entre eles. Não contém métrica de sucesso, holdout, lista de supressão nem critério de saída, porque esses campos são declarados pelo operador e não têm representação no fluxo executável. O adaptador converte os nós que reconhece, marca os campos ausentes como `TODO_DECLARAR` e importa a jornada com status `draft`. Preencher esses campos com valor padrão faria o linter aprovar uma régua que ninguém revisou.
 
 ## Rodando em CI
 
@@ -160,7 +153,7 @@ Cobertura parcial, e assumida. O export do n8n descreve execução, não intenç
 - run: lifecycle-lint audit journeys/ --fail-on error
 ```
 
-O repositório roda o próprio linter contra `examples/` a cada push. As jornadas com defeito precisam falhar, a corrigida precisa passar. Se um dia inverter, a regra mudou sem ninguém perceber.
+O repositório roda o próprio linter contra `examples/` a cada push. As jornadas de exemplo com defeito precisam falhar e a versão corrigida precisa passar, o que detecta mudança acidental de comportamento nas regras.
 
 ## Testes
 
@@ -168,18 +161,16 @@ O repositório roda o próprio linter contra `examples/` a cada push. As jornada
 pytest -q     # 21 testes
 ```
 
-Cada regra tem o caso que dispara e o caso limpo que não dispara. Falso positivo em linter de CRM custa caro. O time desliga na segunda semana e nunca mais liga.
+Cada regra tem um caso que dispara e um caso limpo que não dispara. A cobertura do caso negativo existe para conter falso positivo, que é o motivo mais comum de abandono de linter.
 
 ## Limitações
 
-Ele lê declaração, não execução. Se a jornada declarada não corresponde ao que está publicado na ferramenta, o linter aprova a declaração e o problema segue em produção. O adaptador é a ponte para isso, e hoje cobre n8n pela metade.
+O linter valida o arquivo YAML, e o arquivo pode divergir do fluxo que está publicado na ferramenta de automação. Nesse caso a auditoria passa e o defeito permanece em produção. O adaptador de n8n reduz parte dessa distância, com cobertura hoje limitada aos nós de mensagem, espera, condição e loop.
 
-Ele também não sabe se a mensagem é boa. Pressão e saída são estrutura. Conteúdo é outro problema.
+O linter também não avalia conteúdo de mensagem. As doze regras cobrem estrutura de fluxo, definição de audiência e instrumentação de medida.
 
 ## Contexto
 
-Escrito por [Danilo Espeleta](https://espeledata.com), especialista em CRM e lifecycle marketing. As regras vêm de operação real sobre base de 50 mil leads, não de documentação de ferramenta. O método de leitura de jornada por trás delas é o LEEA, e o caso completo está em [espeledata.com](https://espeledata.com).
+Escrito por [Danilo Espeleta](https://espeledata.com), especialista em CRM e lifecycle marketing. As regras derivam de operação de base com 50 mil leads. O método de leitura de jornada por trás delas é o LEEA, e o caso técnico completo está em [espeledata.com](https://espeledata.com).
 
 Licença MIT.
-
-Régua que ninguém consegue revisar não é régua. É aposta com calendário.

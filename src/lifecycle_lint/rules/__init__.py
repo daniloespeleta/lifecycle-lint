@@ -3,10 +3,9 @@
 Uma regra é uma função que recebe jornadas e devolve Findings. Duas famílias:
 
 - `journey_rule`: olha uma jornada isolada. Pega defeito de construção.
-- `portfolio_rule`: olha todas as jornadas ativas juntas. Pega o defeito que
-  só existe entre jornadas, que é onde mora a maior parte do dano real de CRM:
-  ninguém planeja bombardear um contato, isso emerge de três times publicando
-  fluxos que não se enxergam.
+- `portfolio_rule`: avalia todas as jornadas ativas em conjunto. Cobre o
+  defeito que só existe na interseção entre jornadas, tipicamente produzido
+  por times distintos publicando réguas sobre audiências sobrepostas.
 """
 
 from __future__ import annotations

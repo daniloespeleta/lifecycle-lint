@@ -1,7 +1,7 @@
 """Regras de medição: a jornada consegue provar que funcionou?
 
-Uma jornada sem holdout e com métrica de vaidade não é uma hipótese testável,
-é uma opinião com cronograma.
+Sem grupo de controle e sem métrica de comportamento, o resultado da jornada
+não é atribuível a ela.
 """
 
 from __future__ import annotations
@@ -48,8 +48,8 @@ def weak_success_metric(j: Journey, cfg: dict) -> Iterable[Finding]:
             journey_id=j.id,
             title="Jornada ativa sem métrica de sucesso",
             detail=(
-                "A jornada não declara o que ela existe para mover. Sem isso, não há "
-                "critério para desligá-la, e jornada que não pode ser desligada vira móvel."
+                "A jornada não declara qual métrica ela pretende mover. Sem esse campo "
+                "não existe critério para avaliar continuidade nem para desligá-la."
             ),
             fix="Declarar 'success_metric' com uma métrica de comportamento, não de entrega.",
         )
@@ -63,9 +63,9 @@ def weak_success_metric(j: Journey, cfg: dict) -> Iterable[Finding]:
             journey_id=j.id,
             title="Métrica de sucesso é métrica de entrega",
             detail=(
-                f"A métrica declarada é '{j.success_metric}'. Isso mede se a mensagem "
-                "chegou e foi aberta, não se a pessoa fez o que a jornada queria. "
-                "Open rate melhora trocando assunto, e trocar assunto não retém ninguém."
+                f"A métrica declarada é '{j.success_metric}'. Métricas de entrega medem "
+                "recebimento e abertura, que respondem a mudança de assunto e remetente. "
+                "Elas não capturam o comportamento a jusante que a jornada pretende provocar."
             ),
             fix=(
                 "Trocar por uma métrica de comportamento a jusante: ativação em D+14, "
