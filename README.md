@@ -170,8 +170,6 @@ Ele também não sabe se a mensagem é boa. Pressão, saída e medição são es
 
 ## Contexto
 
-Escrito por [Danilo Espeleta](https://espeledata.com), especialista em CRM e lifecycle marketing. As regras vêm de operação real de base com 50 mil leads, não de documentação de ferramenta.
-
 O método de leitura de jornada por trás das regras é o LEEA. O caso completo está em [espeledata.com](https://espeledata.com).
 
 MIT.
