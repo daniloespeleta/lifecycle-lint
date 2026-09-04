@@ -4,9 +4,7 @@
 
 ---
 
-Jornada de CRM quebrada raramente quebra. Ela roda.
-
-Esse é o problema inteiro em uma frase. Quando um fluxo de automação tem defeito, ele não cai, não estoura erro, não acende alerta. Ele continua enviando. As mensagens saem, o relatório fecha com número verde, e o defeito aparece meses depois na taxa de descadastro, que é a métrica que não volta.
+Jornada de CRM quebrada raramente quebra. Quando um fluxo de automação tem defeito, ele não cai, não estoura erro, não acende alerta. Ele continua enviando. As mensagens saem, o relatório fecha com número verde, e o defeito aparece meses depois na taxa de descadastro, que é a métrica que não volta.
 
 Software resolveu isso há trinta anos com linter: um programa que lê o código e aponta o erro que o compilador aceita mas o humano vai pagar. CRM nunca teve equivalente. Construí um.
 
@@ -47,8 +45,6 @@ Boa parte do que se chama de IA aplicada a marketing hoje é o contrário disso:
 Que régua boa e régua ruim se separam por conhecimento tácito. Critério de saída, supressão, teto de frequência, grupo de controle: são quatro campos que a interface da ferramenta de automação não pergunta, e por isso ninguém preenche. O linter pergunta.
 
 Conhecimento tácito não escala em revisão manual. Escala quando vira regra executável, com nome, severidade, correção sugerida e exit code que barra o merge.
-
-Uma operação de CRM madura não é a que erra menos. É a que descobre o erro antes do envio.
 
 ---
 
