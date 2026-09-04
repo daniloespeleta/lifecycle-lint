@@ -2,8 +2,6 @@
 
 ## A tese
 
-Certificado não prova nada. Prova artefato.
-
 A tese que une os três projetos é uma só: **jornada de cliente é artefato versionável**. Se ela pode ser declarada, pode ser lida, auditada, testada e revisada em pull request, como código. Hoje ela vive dentro da interface de uma ferramenta de automação, onde ninguém consegue revisar, comparar versões ou explicar por que aquele delay é de 48 horas.
 
 Os três repos são os três momentos desse ciclo.
@@ -96,7 +94,7 @@ Dataset sintético de edtech, gerado por script versionado: 40 mil usuários, 18
 
 ## O problema real
 
-Prompt não é texto, é interface. Todo mundo trata como texto: cola no chat, funciona, salva no Notion, esquece. Seis meses depois o modelo mudou, o prompt degradou, e ninguém percebeu porque não havia com o que comparar.
+Prompt é interface, mas tratado como texto: cola no chat, funciona, salva no Notion, esquece. Seis meses depois o modelo mudou, o prompt degradou, e ninguém percebeu porque não havia com o que comparar.
 
 ## O que é uma lente
 
