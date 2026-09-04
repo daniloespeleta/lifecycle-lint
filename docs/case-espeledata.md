@@ -4,7 +4,7 @@
 
 ---
 
-Jornada de CRM quebrada raramente quebra. Quando um fluxo de automação tem defeito, ele não cai, não estoura erro, não acende alerta. Ele continua enviando. As mensagens saem, o relatório fecha com número verde, e o defeito aparece meses depois na taxa de descadastro, que é a métrica que não volta.
+Quando um fluxo de automação tem defeito, ele não cai, não estoura erro, não acende alerta. Ele continua enviando. As mensagens saem, o relatório fecha com número verde, e o defeito aparece meses depois na taxa de descadastro, que é a métrica que não volta.
 
 Software resolveu isso há trinta anos com linter: um programa que lê o código e aponta o erro que o compilador aceita mas o humano vai pagar. CRM nunca teve equivalente. Construí um.
 
