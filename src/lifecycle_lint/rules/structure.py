@@ -20,10 +20,10 @@ def no_exit_criteria(j: Journey, cfg: dict) -> Iterable[Finding]:
         journey_id=j.id,
         title="Jornada ativa sem critério de saída",
         detail=(
-            "A jornada não declara nenhuma condição de saída. Quem entra só sai "
-            "quando os passos acabam, mesmo que já tenha feito a conversão que a "
-            "jornada existe para provocar. É assim que um aluno matriculado continua "
-            "recebendo o fluxo de quem não matriculou."
+            "A jornada não declara nenhuma condição de saída. Quem entra só sai quando "
+            "os passos acabam, mesmo tendo feito a conversão que a jornada existe para "
+            "provocar. É assim que aluno já matriculado segue recebendo o fluxo de quem "
+            "não matriculou."
         ),
         fix=(
             "Declarar em 'exit' o evento que torna a jornada desnecessária "
@@ -91,8 +91,8 @@ def no_suppression(j: Journey, cfg: dict) -> Iterable[Finding]:
         title="Audiência sem lista de supressão",
         detail=(
             f"A audiência não suprime {sorted(missing)}. Enviar para quem pediu para sair "
-            "é problema de compliance antes de ser problema de entregabilidade, e queima "
-            "reputação de domínio que leva meses para recuperar."
+            "é problema de compliance antes de ser problema de entregabilidade. "
+            "Reputação de domínio queimada leva meses para voltar."
         ),
         fix="Adicionar em audience.suppression: [unsubscribed, bounced, complained].",
     )
