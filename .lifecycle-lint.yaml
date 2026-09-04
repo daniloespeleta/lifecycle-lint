@@ -1,0 +1,22 @@
+# Orçamento de atenção do time. Estes números são política de CRM, não
+# constante de engenharia: mudam por vertical, por base e por tolerância da
+# audiência. Estão em arquivo versionado para que a mudança seja discutida
+# em pull request, e não decidida no meio de uma campanha.
+
+# Pressão semanal máxima por contato, somando todas as jornadas ativas que
+# o alcançam. Unidade: peso de canal (email 1.0, push 1.5, sms/whatsapp 2.0).
+max_weekly_pressure: 6.0
+
+# Pressão semanal máxima de uma jornada isolada.
+max_journey_pressure: 4.0
+
+# A partir de qual sobreposição de audiência duas jornadas são consideradas
+# concorrentes (0 a 1, coeficiente de sobreposição sobre os filtros: quando uma
+# audiência é subconjunto da outra, o valor é 1.0).
+audience_overlap_threshold: 0.6
+
+# Audiência acima da qual holdout deixa de ser opcional.
+holdout_required_above: 5000
+
+disabled_rules: []
+downgrade_to_warning: []

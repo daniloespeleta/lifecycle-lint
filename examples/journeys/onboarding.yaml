@@ -1,0 +1,69 @@
+# Jornada bem construída, mal medida. O defeito não é o fluxo, é o critério
+# de sucesso: ela declara open rate como métrica e não tem grupo de controle.
+id: onboarding_novo_aluno
+name: Onboarding novo aluno
+status: active
+owner: crm@exemplo.edu
+
+audience:
+  segment: matriculados
+  filters:
+    - field: enrollment_date
+      op: within_days
+      value: 7
+  suppression: [unsubscribed, bounced]
+  estimated_size: 42000
+
+entry:
+  trigger: event
+  event: enrollment.created
+  reentry: false
+
+success_metric: open_rate
+
+steps:
+  - id: espera_boas_vindas
+    type: delay
+    hours: 2
+
+  - id: email_boas_vindas
+    type: message
+    channel: email
+    template: welcome_v3
+
+  - id: espera_primeiro_acesso
+    type: delay
+    days: 2
+
+  - id: checa_primeiro_acesso
+    type: branch
+    branches:
+      acessou: [email_proximo_passo]
+      nao_acessou: [push_lembrete]
+      default: [sair]
+
+  - id: push_lembrete
+    type: message
+    channel: push
+    template: lembrete_primeiro_acesso
+
+  - id: email_proximo_passo
+    type: message
+    channel: email
+    template: trilha_semana_1
+
+  - id: espera_semana
+    type: delay
+    days: 5
+
+  - id: email_check_in
+    type: message
+    channel: email
+    template: check_in_d7
+
+exit:
+  - when: event
+    event: course.started
+    note: quem começou o curso não precisa mais ser convencido a começar
+  - when: timeout
+    after_days: 14

@@ -1,0 +1,77 @@
+# A mesma jornada depois da auditoria. O que mudou não foi a criatividade da
+# campanha, foi o contrato: janela no segmento, teto no loop, saída declarada,
+# controle para medir, e um toque a menos para caber no orçamento de atenção
+# que o checkout abandonado já consome.
+id: winback_inativos
+name: Reengajamento de inativos
+status: active
+owner: crm@exemplo.edu
+
+audience:
+  segment: alunos_inativos
+  filters:
+    - field: last_login
+      op: more_than_days
+      value: 60
+    - field: engajou
+      op: within_days
+      value: 180
+  suppression: [unsubscribed, bounced, complained]
+  estimated_size: 18000
+
+entry:
+  trigger: schedule
+  event: weekly_scan
+  reentry: true
+  reentry_cooldown_days: 45
+
+holdout: 0.1
+success_metric: reativacao_em_30d_vs_holdout
+
+steps:
+  - id: email_sentimos_falta
+    type: message
+    channel: email
+    template: winback_1
+
+  - id: espera_1
+    type: delay
+    days: 4
+
+  - id: email_oferta
+    type: message
+    channel: email
+    template: winback_oferta
+
+  - id: espera_2
+    type: delay
+    days: 6
+
+  - id: decide_ultimo_toque
+    type: branch
+    branches:
+      abriu_algum: [email_ultima_chamada]
+      nao_abriu: [marca_dormente]
+      default: [marca_dormente]
+
+  - id: email_ultima_chamada
+    type: message
+    channel: email
+    template: winback_3
+
+  - id: marca_dormente
+    type: update
+    template: status=dormente
+
+  - id: repete_ate_reagir
+    type: loop
+    max_iterations: 2
+
+exit:
+  - when: event
+    event: session.started
+  - when: timeout
+    after_days: 21
+  - when: event
+    event: status.dormente
+    note: quem foi marcado como dormente sai do ciclo e volta só na próxima varredura

@@ -1,0 +1,68 @@
+# Roda sobre quase a mesma audiência do winback, ao mesmo tempo. Nenhum dos
+# dois fluxos está errado sozinho. Juntos, cobram sete toques da mesma pessoa.
+id: checkout_abandonado
+name: Recuperação de checkout abandonado
+status: active
+owner: growth@exemplo.edu
+
+audience:
+  segment: alunos_inativos
+  filters:
+    - field: last_login
+      op: more_than_days
+      value: 60
+    - field: checkout_iniciado
+      op: within_days
+      value: 3
+  suppression: [unsubscribed, bounced]
+  estimated_size: 6400
+
+entry:
+  trigger: event
+  event: checkout.abandoned
+  reentry: true
+  reentry_cooldown_days: 7
+
+success_metric: matriculas_recuperadas
+
+steps:
+  - id: espera_curta
+    type: delay
+    hours: 1
+
+  - id: email_voce_esqueceu
+    type: message
+    channel: email
+    template: checkout_1
+
+  - id: espera_media
+    type: delay
+    hours: 4
+
+  - id: push_ultimas_vagas
+    type: message
+    channel: push
+    template: checkout_push
+    respects_quiet_hours: true
+
+  - id: decide_desconto
+    type: branch
+    branches:
+      alto_valor: [sms_cupom]
+      baixo_valor: [email_encerramento]
+
+  - id: sms_cupom
+    type: message
+    channel: sms
+    template: checkout_cupom
+
+  - id: email_encerramento
+    type: message
+    channel: email
+    template: checkout_fim
+
+exit:
+  - when: event
+    event: order.completed
+  - when: timeout
+    after_days: 3

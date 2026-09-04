@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lifecycle-lint"
+version = "0.1.0"
+description = "Auditoria estática de jornadas de CRM: encontra o defeito antes que ele alcance gente."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Danilo Espeleta", email = "daniloespeleta@gmail.com" }]
+keywords = ["crm", "lifecycle-marketing", "marketing-automation", "linter", "martech"]
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+explain = ["anthropic>=0.40"]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+lifecycle-lint = "lifecycle_lint.cli:main"
+
+[project.urls]
+Homepage = "https://espeledata.com"
+Source = "https://github.com/daniloespeleta/lifecycle-lint"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

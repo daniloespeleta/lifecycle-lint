@@ -1,0 +1,53 @@
+# O clássico: um fluxo de reengajamento que nunca termina, sobre um segmento
+# que nunca esquece. Quem entra aqui em janeiro ainda está aqui em julho.
+id: winback_inativos
+name: Reengajamento de inativos
+status: active
+owner: crm@exemplo.edu
+
+audience:
+  segment: alunos_inativos
+  filters:
+    - field: last_login
+      op: more_than_days
+      value: 60
+    - field: engajou_alguma_vez
+      op: equals
+      value: true
+  suppression: [unsubscribed]
+  estimated_size: 18000
+
+entry:
+  trigger: schedule
+  event: weekly_scan
+  reentry: true
+
+success_metric: reativacao_em_30d
+
+steps:
+  - id: email_sentimos_falta
+    type: message
+    channel: email
+    template: winback_1
+
+  - id: espera_1
+    type: delay
+    days: 1
+
+  - id: email_oferta
+    type: message
+    channel: email
+    template: winback_oferta
+
+  - id: espera_2
+    type: delay
+    days: 3
+
+  - id: whats_ultima_chamada
+    type: message
+    channel: whatsapp
+    template: winback_wpp
+
+  - id: repete_ate_reagir
+    type: loop
+    raw_note: volta para o início se não houve reação

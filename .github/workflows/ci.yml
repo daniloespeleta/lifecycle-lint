@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+
+  audit-examples:
+    # O linter roda contra as próprias jornadas de exemplo. As quebradas devem
+    # falhar, a corrigida deve passar. Se um dia a corrigida falhar, ou as
+    # quebradas passarem, a regra mudou sem ninguém perceber.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: jornadas com defeito devem falhar
+        run: |
+          if lifecycle-lint audit examples/journeys --no-color; then
+            echo "as jornadas de exemplo deveriam ter erros" && exit 1
+          fi
+      - name: jornada corrigida deve passar
+        run: lifecycle-lint audit examples/fixed --fail-on warning --no-color
